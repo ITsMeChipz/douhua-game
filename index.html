@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwNDA4NjAyNDkzODY1Mzk4NTQ0NyIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2E3ZTlkOTI1NDk2MDljMGNfaW5kZXguaHRtbC02MzAifSwiZXhwIjoxNzk1NTM3MTM2LCJpYXQiOjE3OTU1MzM1MzYsImFsZyI6IlJTMjU2In0.E6cPpDd5Cf8ReNM8XpAD-AWrW5THFgjjK5wbHeXcolgDVcG0dNZLOgvS8N8YRJ8C06BX11DtFTIs7fNh9zGShO5H4T-NdChd32nVIRY7Cts7AOqnp04ultxvPPxDJDVxPPIXisfyaqF7ypNWqxzxBeihEcXHO0EeZ2FP5qaofoYBA39NAyCXQh_mwJSr0xel0v5tlHGNxikoEC8cZon_U5syg6h0jCllnyMoeKRrW8-R_jUykbvx1XTmuFcU_-2zTB6BJMY6YtwqE1adjMGRX-HuQ4PyZQGb2Pdi8gFz_T_4dq5T1-2pc7VLPjvBvKUlijTGz6D71wsj-vMRj7jeOg","c_a7e9d92549609c0c_index.html-630")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.i=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.extensions="";var l=0,t=null,r=null,q=[],F=new TextEncoder,
+G=new TextDecoder;c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*
+16|0;return(f==="x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;
+(g=t)==null||g.postMessage(a)}};Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  const OVERLAY_SELECTOR =
+    'dialog[open], [role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="combobox"]';
+
+  function isVisibleOverlay(element) {
+    if (element.closest('[hidden], [aria-hidden="true"], [inert]')) {
+      return false;
+    }
+    if (window.getComputedStyle(element).visibility === 'hidden') {
+      return false;
+    }
+    for (let cur = element; cur; cur = cur.parentElement) {
+      if (window.getComputedStyle(cur).display === 'none') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function hasOpenOverlay() {
+    const candidates = document.querySelectorAll(OVERLAY_SELECTOR);
+    for (let i = 0; i < candidates.length; i++) {
+      if (isVisibleOverlay(candidates[i])) {
+        return true;
+      }
+    }
+    try {
+      if (document.querySelector('[popover]:popover-open')) {
+        return true;
+      }
+    } catch (e) {
+      // Ignore engines that do not support :popover-open.
+    }
+    return false;
+  }
+
+  function isNonEmptySearchInput(target) {
+    return (
+      Boolean(target) &&
+      target.tagName === 'INPUT' &&
+      typeof target.type === 'string' &&
+      target.type.toLowerCase() === 'search' &&
+      typeof target.value === 'string' &&
+      target.value.length > 0
+    );
+  }
+
+  function shouldIgnoreEscape(event) {
+    return (
+      event.key !== 'Escape' ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.isComposing ||
+      event.repeat ||
+      event.keyCode === 229 ||
+      isNonEmptySearchInput(event.target)
+    );
+  }
+
+  let shouldIgnoreCaptureState = false;
+
+  window.addEventListener(
+    'keydown',
+    function(event) {
+      if (event.key === 'Escape') {
+        shouldIgnoreCaptureState =
+          hasOpenOverlay() || isNonEmptySearchInput(event.target);
+      }
+    },
+    {capture: true},
+  );
+
+  window.addEventListener('keydown', function(event) {
+    if (
+      shouldIgnoreEscape(event) ||
+      event.defaultPrevented ||
+      shouldIgnoreCaptureState
+    ) {
+      return;
+    }
+    const wasBlockedOnCapture = shouldIgnoreCaptureState;
+    queueMicrotask(function() {
+      if (event.defaultPrevented || wasBlockedOnCapture) {
+        return;
+      }
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({'type': 'escapeKey'}, '*');
+      }
+    });
+  });
+})();</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古早味手工豆花攤 - 台灣夜市模擬經營</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&amp;family=Noto+Serif+TC:wght@700;900&amp;display=swap" rel="stylesheet">
+    <style>
+        /* 自訂古早味夜市視覺與動畫樣式 */
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #1c120c;
+            color: #fef3c7;
+            user-select: none;
+            overflow-x: hidden;
+        }
+        .font-serif-tw {
+            font-family: 'Noto Serif TC', serif;
+        }
+        /* 燈籠擺動動畫 */
+        @keyframes lanternSway {
+            0%, 100% { transform: rotate(-4deg); }
+            50% { transform: rotate(4deg); }
+        }
+        .lantern {
+            transform-origin: top center;
+            animation: lanternSway 3.5s ease-in-out infinite;
+        }
+        .lantern-delay {
+            animation-delay: 1.7s;
+        }
+        /* 攤車木頭櫃台質感 */
+        .wood-counter {
+            background: linear-gradient(180deg, #8b5329 0%, #633717 100%);
+            border-top: 6px solid #a86838;
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.7);
+        }
+        /* 客人進場與彈跳動畫 */
+        @keyframes popIn {
+            0% { transform: scale(0.7) translateY(20px); opacity: 0; }
+            70% { transform: scale(1.05) translateY(-4px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        /* 浮動金幣/評價提示 */
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.9); opacity: 1; }
+            100% { transform: translateY(-45px) scale(1.1); opacity: 0; }
+        }
+        .floating-feedback {
+            animation: floatUp 1.1s ease-out forwards;
+            pointer-events: none;
+        }
+        /* 按鈕按壓手感 */
+        .btn-tactile {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.45);
+        }
+        .btn-tactile:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.45);
+        }
+        /* 自訂捲軸 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2b1a10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #92400e;
+            border-radius: 4px;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.-bottom-2{bottom:-0.5rem}.left-4{left:1rem}.right-3{right:0.75rem}.top-2{top:0.5rem}.top-full{top:100%}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.col-span-2{grid-column:span 2 / span 2}.col-span-3{grid-column:span 3 / span 3}.mx-auto{margin-left:auto;margin-right:auto}.my-1{margin-top:0.25rem;margin-bottom:0.25rem}.my-auto{margin-top:auto;margin-bottom:auto}.-mt-1{margin-top:-0.25rem}.-mt-4{margin-top:-1rem}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2{margin-bottom:0.5rem}.mb-2\.5{margin-bottom:0.625rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mb-0\.5{margin-bottom:0.125rem}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-11{height:2.75rem}.h-12{height:3rem}.h-2{height:0.5rem}.h-24{height:6rem}.h-3{height:0.75rem}.h-32{height:8rem}.h-4{height:1rem}.h-44{height:11rem}.h-6{height:1.5rem}.h-full{height:100%}.max-h-\[260px\]{max-height:260px}.max-h-\[90vh\]{max-height:90vh}.min-h-\[210px\]{min-height:210px}.min-h-\[24px\]{min-height:24px}.min-h-screen{min-height:100vh}.w-1{width:0.25rem}.w-10{width:2.5rem}.w-16{width:4rem}.w-24{width:6rem}.w-3{width:0.75rem}.w-32{width:8rem}.w-4{width:1rem}.w-44{width:11rem}.w-9{width:2.25rem}.w-full{width:100%}.max-w-2xl{max-width:42rem}.max-w-4xl{max-width:56rem}.max-w-6xl{max-width:72rem}.max-w-lg{max-width:32rem}.flex-1{flex:1 1 0%}.-rotate-1{--tw-rotate:-1deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes bounce{0%, 100%{transform:translateY(-25%);animation-timing-function:cubic-bezier(0.8,0,1,1)}50%{transform:none;animation-timing-function:cubic-bezier(0,0,0.2,1)}}.animate-bounce{animation:bounce 1s infinite}.cursor-not-allowed{cursor:not-allowed}.select-all{-webkit-user-select:all;user-select:all}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.grid-cols-5{grid-template-columns:repeat(5, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.space-x-3 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.75rem * var(--tw-space-x-reverse));margin-left:calc(0.75rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.whitespace-pre-wrap{white-space:pre-wrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.rounded-b{border-bottom-right-radius:0.25rem;border-bottom-left-radius:0.25rem}.border{border-width:1px}.border-2{border-width:2px}.border-4{border-width:4px}.border-b{border-bottom-width:1px}.border-b-4{border-bottom-width:4px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138 / var(--tw-border-opacity, 1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77 / var(--tw-border-opacity, 1))}.border-amber-300\/50{border-color:rgb(252 211 77 / 0.5)}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36 / var(--tw-border-opacity, 1))}.border-amber-500{--tw-border-opacity:1;border-color:rgb(245 158 11 / var(--tw-border-opacity, 1))}.border-amber-500\/40{border-color:rgb(245 158 11 / 0.4)}.border-amber-500\/50{border-color:rgb(245 158 11 / 0.5)}.border-amber-500\/80{border-color:rgb(245 158 11 / 0.8)}.border-amber-600\/40{border-color:rgb(217 119 6 / 0.4)}.border-amber-600\/70{border-color:rgb(217 119 6 / 0.7)}.border-amber-700\/80{border-color:rgb(180 83 9 / 0.8)}.border-amber-800\/60{border-color:rgb(146 64 14 / 0.6)}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208 / var(--tw-border-opacity, 1))}.border-emerald-300\/60{border-color:rgb(110 231 183 / 0.6)}.border-emerald-400\/50{border-color:rgb(52 211 153 / 0.5)}.border-emerald-500\/70{border-color:rgb(16 185 129 / 0.7)}.border-pink-400{--tw-border-opacity:1;border-color:rgb(244 114 182 / var(--tw-border-opacity, 1))}.border-red-500\/50{border-color:rgb(239 68 68 / 0.5)}.border-red-600{--tw-border-opacity:1;border-color:rgb(220 38 38 / var(--tw-border-opacity, 1))}.border-red-800{--tw-border-opacity:1;border-color:rgb(153 27 27 / var(--tw-border-opacity, 1))}.border-rose-500\/50{border-color:rgb(244 63 94 / 0.5)}.border-sky-400\/50{border-color:rgb(56 189 248 / 0.5)}.border-sky-500\/60{border-color:rgb(14 165 233 / 0.6)}.border-stone-700{--tw-border-opacity:1;border-color:rgb(68 64 60 / var(--tw-border-opacity, 1))}.border-yellow-200{--tw-border-opacity:1;border-color:rgb(254 240 138 / var(--tw-border-opacity, 1))}.border-yellow-500\/70{border-color:rgb(234 179 8 / 0.7)}.border-stone-700\/60{border-color:rgb(68 64 60 / 0.6)}.bg-\[\#0d1117\]{--tw-bg-opacity:1;background-color:rgb(13 17 23 / var(--tw-bg-opacity, 1))}.bg-\[\#3b1f10\]{--tw-bg-opacity:1;background-color:rgb(59 31 16 / var(--tw-bg-opacity, 1))}.bg-\[\#fffdf7\]{--tw-bg-opacity:1;background-color:rgb(255 253 247 / var(--tw-bg-opacity, 1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-amber-100\/80{background-color:rgb(254 243 199 / 0.8)}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-amber-600\/90{background-color:rgb(217 119 6 / 0.9)}.bg-amber-800{--tw-bg-opacity:1;background-color:rgb(146 64 14 / var(--tw-bg-opacity, 1))}.bg-amber-800\/90{background-color:rgb(146 64 14 / 0.9)}.bg-amber-900\/90{background-color:rgb(120 53 15 / 0.9)}.bg-amber-950{--tw-bg-opacity:1;background-color:rgb(69 26 3 / var(--tw-bg-opacity, 1))}.bg-amber-950\/60{background-color:rgb(69 26 3 / 0.6)}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-black\/45{background-color:rgb(0 0 0 / 0.45)}.bg-black\/85{background-color:rgb(0 0 0 / 0.85)}.bg-black\/90{background-color:rgb(0 0 0 / 0.9)}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-emerald-700{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.bg-emerald-800{--tw-bg-opacity:1;background-color:rgb(6 95 70 / var(--tw-bg-opacity, 1))}.bg-red-700{--tw-bg-opacity:1;background-color:rgb(185 28 28 / var(--tw-bg-opacity, 1))}.bg-rose-800{--tw-bg-opacity:1;background-color:rgb(159 18 57 / var(--tw-bg-opacity, 1))}.bg-sky-700{--tw-bg-opacity:1;background-color:rgb(3 105 161 / var(--tw-bg-opacity, 1))}.bg-sky-900\/80{background-color:rgb(12 74 110 / 0.8)}.bg-stone-700{--tw-bg-opacity:1;background-color:rgb(68 64 60 / var(--tw-bg-opacity, 1))}.bg-stone-800{--tw-bg-opacity:1;background-color:rgb(41 37 36 / var(--tw-bg-opacity, 1))}.bg-stone-900{--tw-bg-opacity:1;background-color:rgb(28 25 23 / var(--tw-bg-opacity, 1))}.bg-stone-900\/75{background-color:rgb(28 25 23 / 0.75)}.bg-stone-900\/85{background-color:rgb(28 25 23 / 0.85)}.bg-stone-950{--tw-bg-opacity:1;background-color:rgb(12 10 9 / var(--tw-bg-opacity, 1))}.bg-yellow-500{--tw-bg-opacity:1;background-color:rgb(234 179 8 / var(--tw-bg-opacity, 1))}.bg-yellow-900\/90{background-color:rgb(113 63 18 / 0.9)}.bg-amber-900\/80{background-color:rgb(120 53 15 / 0.8)}.bg-stone-900\/60{background-color:rgb(28 25 23 / 0.6)}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-\[\#170f1e\]{--tw-gradient-from:#170f1e var(--tw-gradient-from-position);--tw-gradient-to:rgb(23 15 30 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-\[\#3d1f0e\]{--tw-gradient-from:#3d1f0e var(--tw-gradient-from-position);--tw-gradient-to:rgb(61 31 14 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-\[\#4a2511\]{--tw-gradient-from:#4a2511 var(--tw-gradient-from-position);--tw-gradient-to:rgb(74 37 17 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-amber-100{--tw-gradient-from:#fef3c7 var(--tw-gradient-from-position);--tw-gradient-to:rgb(254 243 199 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-amber-500{--tw-gradient-from:#f59e0b var(--tw-gradient-from-position);--tw-gradient-to:rgb(245 158 11 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-amber-700{--tw-gradient-from:#b45309 var(--tw-gradient-from-position);--tw-gradient-to:rgb(180 83 9 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-amber-950\/50{--tw-gradient-from:rgb(69 26 3 / 0.5) var(--tw-gradient-from-position);--tw-gradient-to:rgb(69 26 3 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-500{--tw-gradient-from:#10b981 var(--tw-gradient-from-position);--tw-gradient-to:rgb(16 185 129 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-600{--tw-gradient-from:#059669 var(--tw-gradient-from-position);--tw-gradient-to:rgb(5 150 105 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-orange-500{--tw-gradient-from:#f97316 var(--tw-gradient-from-position);--tw-gradient-to:rgb(249 115 22 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-red-600{--tw-gradient-from:#dc2626 var(--tw-gradient-from-position);--tw-gradient-to:rgb(220 38 38 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-\[\#2b1712\]{--tw-gradient-to:rgb(43 23 18 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #2b1712 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-orange-50{--tw-gradient-to:rgb(255 247 237 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #fff7ed var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-red-500{--tw-gradient-to:rgb(239 68 68 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #ef4444 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-\[\#1c100a\]{--tw-gradient-to:#1c100a var(--tw-gradient-to-position)}.to-\[\#211007\]{--tw-gradient-to:#211007 var(--tw-gradient-to-position)}.to-\[\#291409\]{--tw-gradient-to:#291409 var(--tw-gradient-to-position)}.to-amber-200{--tw-gradient-to:#fde68a var(--tw-gradient-to-position)}.to-amber-950{--tw-gradient-to:#451a03 var(--tw-gradient-to-position)}.to-green-600{--tw-gradient-to:#16a34a var(--tw-gradient-to-position)}.to-orange-600{--tw-gradient-to:#ea580c var(--tw-gradient-to-position)}.to-red-600{--tw-gradient-to:#dc2626 var(--tw-gradient-to-position)}.to-red-700{--tw-gradient-to:#b91c1c var(--tw-gradient-to-position)}.to-stone-900\/70{--tw-gradient-to:rgb(28 25 23 / 0.7) var(--tw-gradient-to-position)}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.pr-1{padding-right:0.25rem}.text-left{text-align:left}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[11px\]{font-size:11px}.font-black{font-weight:900}.font-bold{font-weight:700}.leading-relaxed{line-height:1.625}.leading-none{line-height:1}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.text-amber-100{--tw-text-opacity:1;color:rgb(254 243 199 / var(--tw-text-opacity, 1))}.text-amber-100\/90{color:rgb(254 243 199 / 0.9)}.text-amber-200{--tw-text-opacity:1;color:rgb(253 230 138 / var(--tw-text-opacity, 1))}.text-amber-200\/70{color:rgb(253 230 138 / 0.7)}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-300\/90{color:rgb(252 211 77 / 0.9)}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-amber-400\/80{color:rgb(251 191 36 / 0.8)}.text-amber-900{--tw-text-opacity:1;color:rgb(120 53 15 / var(--tw-text-opacity, 1))}.text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249 / var(--tw-text-opacity, 1))}.text-emerald-100{--tw-text-opacity:1;color:rgb(209 250 229 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-pink-300{--tw-text-opacity:1;color:rgb(249 168 212 / var(--tw-text-opacity, 1))}.text-red-700{--tw-text-opacity:1;color:rgb(185 28 28 / var(--tw-text-opacity, 1))}.text-red-900{--tw-text-opacity:1;color:rgb(127 29 29 / var(--tw-text-opacity, 1))}.text-rose-100{--tw-text-opacity:1;color:rgb(255 228 230 / var(--tw-text-opacity, 1))}.text-rose-400{--tw-text-opacity:1;color:rgb(251 113 133 / var(--tw-text-opacity, 1))}.text-sky-100{--tw-text-opacity:1;color:rgb(224 242 254 / var(--tw-text-opacity, 1))}.text-stone-200{--tw-text-opacity:1;color:rgb(231 229 228 / var(--tw-text-opacity, 1))}.text-stone-400{--tw-text-opacity:1;color:rgb(168 162 158 / var(--tw-text-opacity, 1))}.text-stone-950{--tw-text-opacity:1;color:rgb(12 10 9 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-yellow-100{--tw-text-opacity:1;color:rgb(254 249 195 / var(--tw-text-opacity, 1))}.text-yellow-300{--tw-text-opacity:1;color:rgb(253 224 71 / var(--tw-text-opacity, 1))}.opacity-25{opacity:0.25}.opacity-50{opacity:0.5}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-amber-300\/30{--tw-shadow-color:rgb(252 211 77 / 0.3);--tw-shadow:var(--tw-shadow-colored)}.shadow-red-600\/40{--tw-shadow-color:rgb(220 38 38 / 0.4);--tw-shadow:var(--tw-shadow-colored)}.blur-\[1px\]{--tw-blur:blur(1px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow{--tw-drop-shadow:drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-2xl{--tw-drop-shadow:drop-shadow(0 25px 25px rgb(0 0 0 / 0.15));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-amber-700:hover{--tw-bg-opacity:1;background-color:rgb(180 83 9 / var(--tw-bg-opacity, 1))}.hover\:bg-amber-800:hover{--tw-bg-opacity:1;background-color:rgb(146 64 14 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-600:hover{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-700:hover{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.hover\:bg-rose-700:hover{--tw-bg-opacity:1;background-color:rgb(190 18 60 / var(--tw-bg-opacity, 1))}.hover\:bg-sky-600:hover{--tw-bg-opacity:1;background-color:rgb(2 132 199 / var(--tw-bg-opacity, 1))}.hover\:bg-sky-800:hover{--tw-bg-opacity:1;background-color:rgb(7 89 133 / var(--tw-bg-opacity, 1))}.hover\:bg-stone-600:hover{--tw-bg-opacity:1;background-color:rgb(87 83 78 / var(--tw-bg-opacity, 1))}.hover\:bg-yellow-800:hover{--tw-bg-opacity:1;background-color:rgb(133 77 14 / var(--tw-bg-opacity, 1))}.hover\:from-amber-400:hover{--tw-gradient-from:#fbbf24 var(--tw-gradient-from-position);--tw-gradient-to:rgb(251 191 36 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:from-emerald-400:hover{--tw-gradient-from:#34d399 var(--tw-gradient-from-position);--tw-gradient-to:rgb(52 211 153 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:from-emerald-500:hover{--tw-gradient-from:#10b981 var(--tw-gradient-from-position);--tw-gradient-to:rgb(16 185 129 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:to-green-500:hover{--tw-gradient-to:#22c55e var(--tw-gradient-to-position)}.hover\:to-orange-500:hover{--tw-gradient-to:#f97316 var(--tw-gradient-to-position)}.hover\:brightness-110:hover{--tw-brightness:brightness(1.1);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.group:hover .group-hover\:scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:inline{display:inline}.sm\:hidden{display:none}.sm\:h-28{height:7rem}.sm\:h-36{height:9rem}.sm\:h-48{height:12rem}.sm\:min-h-\[245px\]{min-height:245px}.sm\:w-28{width:7rem}.sm\:w-36{width:9rem}.sm\:w-48{width:12rem}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.sm\:gap-2\.5{gap:0.625rem}.sm\:gap-3{gap:0.75rem}.sm\:p-4{padding:1rem}.sm\:p-5{padding:1.25rem}.sm\:p-6{padding:1.5rem}.sm\:p-7{padding:1.75rem}.sm\:p-8{padding:2rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:py-3{padding-top:0.75rem;padding-bottom:0.75rem}.sm\:py-4{padding-top:1rem;padding-bottom:1rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 768px){.md\:flex{display:flex}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-3{grid-column:span 3 / span 3}.lg\:col-span-4{grid-column:span 4 / span 4}.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}}</style></head>
+<body class="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#170f1e] via-[#2b1712] to-[#1c100a]">
+
+    <!-- 頂部狀態列與看板 -->
+    <header class="relative bg-[#3b1f10] border-b-4 border-amber-700/80 px-3 py-2 sm:px-6 sm:py-3 shadow-xl z-20">
+        <!-- 裝飾燈籠 -->
+        <div class="hidden md:flex absolute left-4 top-full -mt-1 z-30 pointer-events-none space-x-3">
+            <div class="lantern flex flex-col items-center">
+                <div class="w-1 h-3 bg-amber-400"></div>
+                <div class="w-10 h-12 bg-gradient-to-b from-red-600 via-red-500 to-red-700 rounded-2xl border-2 border-amber-300 flex items-center justify-center shadow-lg shadow-red-600/40">
+                    <span class="font-serif-tw text-amber-200 font-black text-sm">豆花</span>
+                </div>
+                <div class="w-3 h-2 bg-amber-500 rounded-b"></div>
+            </div>
+            <div class="lantern lantern-delay flex flex-col items-center">
+                <div class="w-1 h-4 bg-amber-400"></div>
+                <div class="w-9 h-11 bg-gradient-to-b from-amber-100 via-orange-50 to-amber-200 rounded-2xl border-2 border-red-600 flex items-center justify-center shadow-lg shadow-amber-300/30">
+                    <span class="font-serif-tw text-red-700 font-black text-xs">古早味</span>
+                </div>
+                <div class="w-3 h-2 bg-red-700 rounded-b"></div>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <!-- 招牌名稱 -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="bg-amber-100 text-red-900 border-2 border-red-800 px-3 py-1 rounded-xl shadow-md transform -rotate-1">
+                    <h1 class="font-serif-tw font-black text-lg sm:text-2xl tracking-wider flex items-center gap-1.5">
+                        <span>🏮</span> 古早味手工豆花
+                    </h1>
+                </div>
+                <span id="day-badge" class="bg-amber-600/90 text-white font-bold px-2.5 py-1 rounded-lg text-xs sm:text-sm border border-amber-300/50 shadow">第 1 天</span>
+            </div>
+
+            <!-- 數據指標與功能按鈕 -->
+            <div class="flex items-center flex-wrap gap-2 sm:gap-2.5">
+                <!-- 金幣 -->
+                <div class="bg-stone-900/85 border border-amber-500/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-inner">
+                    <span class="text-base sm:text-lg">💰</span>
+                    <span id="money-display" class="font-black text-amber-400 text-sm sm:text-lg">100</span>
+                    <span class="text-xs text-amber-200/70">元</span>
+                </div>
+
+                <!-- 聲望星星 -->
+                <div class="bg-stone-900/85 border border-amber-500/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-inner">
+                    <span class="text-base sm:text-lg">⭐</span>
+                    <span id="reputation-display" class="font-black text-yellow-300 text-sm sm:text-lg">4.5</span>
+                </div>
+
+                <!-- 倒數計時 -->
+                <div class="bg-stone-900/85 border border-red-500/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-inner">
+                    <span class="text-base sm:text-lg">⏳</span>
+                    <span id="timer-display" class="font-black text-rose-400 text-sm sm:text-lg w-9 text-center">90s</span>
+                </div>
+
+                <!-- 音效開關 -->
+                <button id="sound-toggle-btn" onclick="toggleSound()" title="切換音效" class="btn-tactile bg-amber-800 hover:bg-amber-700 text-amber-100 p-2 rounded-xl border border-amber-500/40 text-sm sm:text-base">
+                    🔊
+                </button>
+
+                <!-- 一鍵複製完整網頁原始碼 (上架 GitHub 用) -->
+                <button onclick="copyFullHtmlCode()" class="btn-tactile bg-sky-700 hover:bg-sky-600 text-white font-bold px-3 py-1.5 rounded-xl border border-sky-400/50 text-xs sm:text-sm flex items-center gap-1 shadow-md">
+                    <span>📋</span>
+                    <span class="hidden sm:inline">複製網頁碼 (上架用)</span>
+                    <span class="sm:hidden">複製網頁</span>
+                </button>
+
+                <!-- Python 原始碼按鈕 -->
+                <button onclick="openPythonModal()" class="btn-tactile bg-emerald-700 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-xl border border-emerald-400/50 text-xs sm:text-sm flex items-center gap-1 shadow-md">
+                    <span>🐍</span>
+                    <span class="hidden sm:inline">Python 碼</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主遊戲舞台區 -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-3 py-3 sm:px-6 sm:py-4 flex flex-col justify-between gap-3 relative">
+
+        <!-- 浮動提示容器 -->
+        <div id="feedback-layer" class="fixed inset-0 pointer-events-none z-40 flex items-center justify-center"></div>
+
+        <!-- 客人排隊與點餐區 (夜市街道背景) -->
+        <section class="relative bg-gradient-to-b from-amber-950/50 to-stone-900/70 rounded-2xl border-2 border-amber-800/60 p-3 sm:p-4 min-h-[210px] sm:min-h-[245px] flex flex-col justify-between shadow-inner overflow-hidden">
+            <!-- 背景夜市霓虹裝飾 -->
+            <div class="absolute top-2 right-3 opacity-25 pointer-events-none flex gap-2 text-xs font-serif-tw">
+                <span class="border border-pink-400 text-pink-300 px-1.5 py-0.5 rounded">鹽酥雞</span>
+                <span class="border border-cyan-400 text-cyan-300 px-1.5 py-0.5 rounded">蚵仔煎</span>
+                <span class="border border-amber-400 text-amber-300 px-1.5 py-0.5 rounded">木瓜牛奶</span>
+            </div>
+
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs sm:text-sm font-bold text-amber-300/90 flex items-center gap-1.5">
+                    <span>👥</span> 攤位前客人 (<span id="customer-count">0</span>/3) — 點擊客人切換服務對象
+                </span>
+                <span id="combo-badge" class="hidden bg-gradient-to-r from-orange-500 to-red-600 text-white text-xs font-black px-2.5 py-0.5 rounded-full shadow animate-bounce">
+                    🔥 連續完美 x2!
+                </span>
+            </div>
+
+            <!-- 客人卡片容器 -->
+            <div id="customers-container" class="grid grid-cols-1 md:grid-cols-3 gap-3 my-auto">
+                <!-- 動態生成客人卡片 -->
+            </div>
+        </section>
+
+        <!-- 攤車工作台 (木桶、配料盆、組裝碗公) -->
+        <section class="wood-counter rounded-2xl p-3 sm:p-5 border-2 border-amber-700/80 shadow-2xl">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+
+                <!-- 左側：古早味檜木豆花桶 -->
+                <div class="lg:col-span-3 flex flex-col items-center justify-center bg-amber-950/60 rounded-2xl p-3 border border-amber-600/40">
+                    <div class="text-xs font-bold text-amber-300 mb-2 flex items-center gap-1">
+                        <span>🪵</span> 檜木豆花桶 (<span id="bucket-stock">10</span>/<span id="bucket-max">10</span>碗)
+                    </div>
+
+                    <!-- 木桶 SVG 互動按鈕 -->
+                    <button id="scoop-douhua-btn" onclick="scoopDouhua()" class="btn-tactile group relative w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-b from-amber-700 to-amber-950 border-4 border-amber-500/80 flex flex-col items-center justify-center shadow-xl hover:brightness-110 focus:outline-none">
+                        <!-- 桶內白嫩豆花 -->
+                        <div id="bucket-visual" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#fffdf7] border-4 border-amber-800/60 shadow-inner flex flex-col items-center justify-center relative overflow-hidden transition-transform group-hover:scale-105">
+                            <div class="w-16 h-6 bg-amber-100/80 rounded-full blur-[1px] -mt-4"></div>
+                            <span class="text-amber-900 font-black text-xs sm:text-sm mt-1">點擊舀豆花</span>
+                        </div>
+                        <span class="absolute -bottom-2 bg-amber-500 text-stone-950 font-black text-xs px-2.5 py-0.5 rounded-full shadow">
+                            ① 舀入碗中
+                        </span>
+                    </button>
+
+                    <button id="refill-bucket-btn" onclick="refillBucket()" class="mt-3 text-xs bg-amber-800/90 hover:bg-amber-700 text-amber-100 px-3 py-1 rounded-lg border border-amber-500/40 transition">
+                        🔄 補充新豆花 (-$15)
+                    </button>
+                </div>
+
+                <!-- 中間：目前製作中的豆花碗公與出餐區 -->
+                <div class="lg:col-span-4 flex flex-col items-center justify-center bg-stone-900/75 rounded-2xl p-3 sm:p-4 border-2 border-amber-500/40 relative">
+                    <div class="w-full flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-amber-200">🥣 目前製作碗公</span>
+                        <span id="bowl-status-text" class="text-xs font-bold text-stone-400">空碗（請先舀豆花）</span>
+                    </div>
+
+                    <!-- 碗公視覺畫布 (SVG 動態呈現配料與湯汁) -->
+                    <div class="relative w-44 h-44 sm:w-48 sm:h-48 my-1 flex items-center justify-center">
+                        <svg id="bowl-svg" viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
+                            <!-- 碗底陰影 -->
+                            <ellipse cx="100" cy="172" rx="68" ry="14" fill="rgba(0,0,0,0.5)"></ellipse>
+                            <!-- 傳統青花瓷碗身 -->
+                            <path d="M 22 85 Q 25 165 100 168 Q 175 165 178 85 Z" fill="#f8fafc" stroke="#1e3a8a" stroke-width="3"></path>
+                            <!-- 青花瓷花紋 -->
+                            <path d="M 35 115 Q 100 132 165 115" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="6,4"></path>
+                            <path d="M 48 140 Q 100 154 152 140" fill="none" stroke="#1d4ed8" stroke-width="2"></path>
+                            <!-- 碗口內緣 -->
+                            <ellipse cx="100" cy="85" rx="78" ry="30" fill="#e2e8f0" stroke="#1e3a8a" stroke-width="3"></ellipse>
+
+                            <!-- 動態層 1：豆花本體 -->
+                            <g id="svg-layer-douhua" class="hidden">
+                                <ellipse cx="100" cy="88" rx="68" ry="23" fill="#fffbeb"></ellipse>
+                                <path d="M 55 86 Q 85 78 120 86 Q 95 95 55 86 Z" fill="#fef3c7" opacity="0.8"></path>
+                            </g>
+
+                            <!-- 動態層 2：配料群組 -->
+                            <g id="svg-layer-toppings"></g>
+
+                            <!-- 動態層 3：湯底 (黑糖水 / 薑汁) -->
+                            <g id="svg-layer-soup" class="hidden">
+                                <ellipse id="soup-ellipse" cx="100" cy="87" rx="71" ry="24" fill="rgba(120, 53, 15, 0.45)"></ellipse>
+                            </g>
+
+                            <!-- 動態層 4：碎冰 -->
+                            <g id="svg-layer-ice" class="hidden">
+                                <polygon points="85,78 96,73 102,82 90,86" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1" opacity="0.9"></polygon>
+                                <polygon points="106,80 118,75 122,85 110,88" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="1" opacity="0.9"></polygon>
+                                <polygon points="72,85 83,81 86,90 75,92" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1" opacity="0.9"></polygon>
+                                <polygon points="95,88 108,84 111,93 98,95" fill="#ffffff" stroke="#bae6fd" stroke-width="1" opacity="0.92"></polygon>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <!-- 已加配料標籤列 -->
+                    <div id="current-bowl-tags" class="flex flex-wrap justify-center gap-1 min-h-[24px] mb-2"><span class="text-xs text-stone-400">尚未加入任何材料</span></div>
+
+                    <!-- 出餐與重做按鈕 -->
+                    <div class="w-full grid grid-cols-5 gap-2">
+                        <button onclick="trashBowl()" class="btn-tactile col-span-2 bg-rose-800 hover:bg-rose-700 text-rose-100 font-bold py-2 px-2 rounded-xl border border-rose-500/50 text-xs sm:text-sm flex items-center justify-center gap-1">
+                            <span>🗑️</span> 倒掉重做
+                        </button>
+                        <button id="serve-btn" onclick="serveBowl()" class="btn-tactile col-span-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black py-2 px-3 rounded-xl border border-emerald-300/60 text-sm sm:text-base flex items-center justify-center gap-1.5 shadow-lg">
+                            <span>🛎️</span> 出餐給客人！
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 右側：配料盆與湯底區 -->
+                <div class="lg:col-span-5 flex flex-col gap-3 bg-amber-950/60 rounded-2xl p-3 sm:p-4 border border-amber-600/40">
+                    <!-- 步驟二：傳統配料 -->
+                    <div>
+                        <div class="text-xs font-bold text-amber-300 mb-1.5 flex justify-between">
+                            <span>② 添加配料 (可複選，每份成本 $3)</span>
+                            <span class="text-amber-400/80">依客人需求點選</span>
+                        </div>
+                        <div id="toppings-grid" class="grid grid-cols-3 gap-2">
+                    <button id="topping-btn-peanut" onclick="toggleTopping('peanut')" class="btn-tactile bg-amber-900/80 hover:bg-amber-800 border border-amber-500/50 rounded-xl p-2 flex flex-col items-center justify-center text-amber-100">
+                        <span class="text-lg sm:text-xl leading-none mb-0.5">🥜</span>
+                        <span class="text-xs font-bold">花生</span>
+                    </button>
+                
+                    <button id="topping-btn-boba" onclick="toggleTopping('boba')" class="btn-tactile bg-amber-900/80 hover:bg-amber-800 border border-amber-500/50 rounded-xl p-2 flex flex-col items-center justify-center text-amber-100">
+                        <span class="text-lg sm:text-xl leading-none mb-0.5">⚫</span>
+                        <span class="text-xs font-bold">粉圓</span>
+                    </button>
+                
+                    <button id="topping-btn-redbean" onclick="toggleTopping('redbean')" class="btn-tactile bg-amber-900/80 hover:bg-amber-800 border border-amber-500/50 rounded-xl p-2 flex flex-col items-center justify-center text-amber-100">
+                        <span class="text-lg sm:text-xl leading-none mb-0.5">🫘</span>
+                        <span class="text-xs font-bold">紅豆</span>
+                    </button>
+                
+                    <button id="topping-btn-mungbean" onclick="toggleTopping('mungbean')" class="btn-tactile bg-amber-900/80 hover:bg-amber-800 border border-amber-500/50 rounded-xl p-2 flex flex-col items-center justify-center text-amber-100">
+                        <span class="text-lg sm:text-xl leading-none mb-0.5">🟢</span>
+                        <span class="text-xs font-bold">綠豆</span>
+                    </button>
+                
+                        <button disabled="" class="bg-stone-900/60 border border-stone-700/60 rounded-xl p-2 flex flex-col items-center justify-center opacity-50 cursor-not-allowed">
+                            <span class="text-base">🔒</span>
+                            <span class="text-[11px] text-stone-400">芋圓 (商店解鎖)</span>
+                        </button>
+                    
+                        <button disabled="" class="bg-stone-900/60 border border-stone-700/60 rounded-xl p-2 flex flex-col items-center justify-center opacity-50 cursor-not-allowed">
+                            <span class="text-base">🔒</span>
+                            <span class="text-[11px] text-stone-400">仙草 (商店解鎖)</span>
+                        </button>
+                    </div>
+                    </div>
+
+                    <!-- 步驟三：湯底選擇 -->
+                    <div>
+                        <div class="text-xs font-bold text-amber-300 mb-1.5">
+                            <span>③ 淋上古早味湯底 (必選一種)</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setSoup('brownsugar')" id="btn-soup-brownsugar" class="btn-tactile bg-amber-900/90 hover:bg-amber-800 border-2 border-amber-600/70 rounded-xl p-2 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-amber-100">
+                                <span class="w-4 h-4 rounded-full bg-amber-950 border border-amber-400 inline-block"></span>
+                                <span>黑糖水</span>
+                            </button>
+                            <button onclick="setSoup('ginger')" id="btn-soup-ginger" class="btn-tactile bg-yellow-900/90 hover:bg-yellow-800 border-2 border-yellow-500/70 rounded-xl p-2 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-yellow-100">
+                                <span class="w-4 h-4 rounded-full bg-yellow-500 border border-yellow-200 inline-block"></span>
+                                <span>熱老薑汁</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 步驟四：冷熱溫度/碎冰 -->
+                    <div>
+                        <div class="text-xs font-bold text-amber-300 mb-1.5">
+                            <span>④ 冰塊調整 (冰豆花必加碎冰)</span>
+                        </div>
+                        <button onclick="toggleIce()" id="btn-toggle-ice" class="btn-tactile w-full bg-sky-900/80 hover:bg-sky-800 border-2 border-sky-500/60 rounded-xl p-2 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-sky-100">
+                            <span>🧊</span>
+                            <span id="ice-btn-label">加入清涼碎冰 (目前：未加冰)</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- 遊戲開始覆蓋層 -->
+    <div id="start-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-[#4a2511] to-[#291409] border-4 border-amber-500 rounded-3xl max-w-lg w-full p-6 sm:p-8 text-center shadow-2xl animate-pop-in">
+            <div class="inline-block bg-red-700 text-amber-100 text-xs font-bold px-3 py-1 rounded-full border border-amber-300 mb-3">
+                🇹🇼 台灣夜市經典小吃模擬
+            </div>
+            <h2 class="font-serif-tw text-3xl sm:text-4xl font-black text-amber-300 mb-3 tracking-wide drop-shadow">
+                古早味手工豆花攤
+            </h2>
+            <p class="text-amber-100/90 text-sm sm:text-base leading-relaxed mb-5">
+                夜幕低垂，華燈初上！接手阿公傳承下來的木頭豆花攤，在熱鬧的台灣夜市中大顯身手吧！
+            </p>
+
+            <div class="bg-black/40 rounded-2xl p-4 text-left text-xs sm:text-sm text-amber-200 space-y-2 mb-6 border border-amber-600/40">
+                <div class="font-bold text-amber-400 text-sm mb-1">📋 擺攤秘笈：</div>
+                <p>1️⃣ <b>看清訂單：</b>注意客人要「冰豆花 ❄️」還是「熱豆花 🔥」、配料與湯底。</p>
+                <p>2️⃣ <b>依序製作：</b>點擊木桶<b>舀豆花</b> ➔ 加<b>配料</b> ➔ 淋<b>黑糖水或薑汁</b> ➔ 冰豆花記得加<b>碎冰</b>。</p>
+                <p>3️⃣ <b>準時出餐：</b>在客人耐心耗盡前按下「出餐」，賺取金幣解鎖芋圓、仙草與升級攤車！</p>
+            </div>
+
+            <div class="flex flex-col gap-2.5 justify-center">
+                <button onclick="startGame()" class="btn-tactile w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-stone-950 font-black text-lg py-3 px-6 rounded-2xl border-2 border-amber-200 shadow-xl">
+                    🏮 開始擺攤營業！
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="copyFullHtmlCode()" class="btn-tactile bg-sky-700 hover:bg-sky-600 text-white font-bold text-xs sm:text-sm py-2.5 px-3 rounded-xl border border-sky-400/50">
+                        📋 複製網頁碼 (貼到 GitHub)
+                    </button>
+                    <button onclick="openPythonModal()" class="btn-tactile bg-emerald-800 hover:bg-emerald-700 text-emerald-100 font-bold text-xs sm:text-sm py-2.5 px-3 rounded-xl border border-emerald-400/50">
+                        🐍 取得 Python 單機版
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 日結與攤車升級商店 Modal -->
+    <div id="shop-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-gradient-to-b from-[#3d1f0e] to-[#211007] border-4 border-amber-500 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl my-auto animate-pop-in">
+            <div class="text-center mb-4">
+                <span class="bg-amber-500 text-stone-950 font-black text-xs px-3 py-1 rounded-full">今日營業結束</span>
+                <h2 id="shop-day-title" class="font-serif-tw text-2xl sm:text-3xl font-black text-amber-300 mt-2">
+                    第 1 天 營收結算與攤車升級
+                </h2>
+            </div>
+
+            <!-- 營收報表 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-black/45 p-3.5 rounded-2xl border border-amber-600/40 mb-5 text-center">
+                <div>
+                    <div class="text-xs text-amber-200/70">服務客數</div>
+                    <div id="stat-served" class="text-lg sm:text-xl font-black text-white">0 碗</div>
+                </div>
+                <div>
+                    <div class="text-xs text-amber-200/70">今日營業額</div>
+                    <div id="stat-revenue" class="text-lg sm:text-xl font-black text-emerald-400">+$0</div>
+                </div>
+                <div>
+                    <div class="text-xs text-amber-200/70">原料成本</div>
+                    <div id="stat-cost" class="text-lg sm:text-xl font-black text-rose-400">-$0</div>
+                </div>
+                <div>
+                    <div class="text-xs text-amber-200/70">目前總資金</div>
+                    <div id="stat-total-money" class="text-lg sm:text-xl font-black text-amber-400">$100</div>
+                </div>
+            </div>
+
+            <!-- 升級項目列表 -->
+            <div class="mb-5">
+                <h3 class="text-sm font-bold text-amber-300 mb-2.5 flex items-center gap-1.5">
+                    <span>🛠️</span> 攤車升級與新配料解鎖
+                </h3>
+                <div id="upgrades-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[260px] overflow-y-auto pr-1">
+                    <!-- 動態生成升級卡片 -->
+                </div>
+            </div>
+
+            <button onclick="startNextDay()" class="btn-tactile w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-stone-950 font-black text-lg py-3 rounded-2xl border-2 border-emerald-200 shadow-xl">
+                🌅 準備好了，開啟下一天營業！
+            </button>
+        </div>
+    </div>
+
+    <!-- Python 原始碼查看與複製 Modal -->
+    <div id="python-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-stone-900 border-2 border-emerald-500/70 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="bg-stone-800 px-4 py-3 border-b border-stone-700 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🐍</span>
+                    <div>
+                        <h3 class="font-bold text-emerald-400 text-sm sm:text-base">Python Pygame 單機版完整程式碼 (douhua_game.py)</h3>
+                        <p class="text-xs text-stone-400">本機安裝 <code class="bg-stone-950 px-1.5 py-0.5 rounded text-amber-300">pip install pygame</code> 後即可執行！</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="copy-py-btn" onclick="copyPythonCode()" class="btn-tactile bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs sm:text-sm flex items-center gap-1">
+                        <span>📋</span> 複製程式碼
+                    </button>
+                    <button onclick="closePythonModal()" class="bg-stone-700 hover:bg-stone-600 text-stone-200 font-bold px-3 py-1.5 rounded-lg text-xs sm:text-sm">
+                        ✕ 關閉
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 bg-[#0d1117] font-mono text-xs sm:text-sm text-emerald-100 leading-relaxed">
+                <pre id="python-code-block" class="whitespace-pre-wrap select-all"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================================================
+           1. Web Audio API 復古夜市音效合成器 (無需外部音檔)
+           ========================================================================= */
+        const AudioSys = {
+            ctx: null,
+            muted: false,
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playTone(freq, type, duration, vol = 0.15, slideFreq = null) {
+                if (this.muted) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                if (slideFreq) {
+                    osc.frequency.exponentialRampToValueAtTime(slideFreq, this.ctx.currentTime + duration);
+                }
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            scoop() { this.playTone(320, 'sine', 0.18, 0.2, 540); },
+            topping() { this.playTone(520, 'triangle', 0.1, 0.15, 680); },
+            soup() { this.playTone(260, 'sine', 0.25, 0.16, 390); },
+            ice() {
+                this.playTone(1100, 'triangle', 0.08, 0.12, 1450);
+                setTimeout(() => this.playTone(1350, 'sine', 0.08, 0.1, 1600), 60);
+            },
+            coin() {
+                this.playTone(987.77, 'sine', 0.1, 0.18);
+                setTimeout(() => this.playTone(1318.51, 'sine', 0.28, 0.2), 90);
+            },
+            error() { this.playTone(200, 'sawtooth', 0.25, 0.15, 130); },
+            trash() { this.playTone(180, 'triangle', 0.18, 0.15, 90); }
+        };
+
+        function toggleSound() {
+            AudioSys.muted = !AudioSys.muted;
+            document.getElementById('sound-toggle-btn').textContent = AudioSys.muted ? '🔇' : '🔊';
+        }
+
+        /* =========================================================================
+           2. 遊戲資料與狀態定義
+           ========================================================================= */
+        const TOPPINGS_DATA = {
+            peanut:    { id: 'peanut',    name: '軟綿花生', emoji: '🥜', color: '#eab308', unlocked: true,  price: 5 },
+            boba:      { id: 'boba',      name: '黑糖粉圓', emoji: '⚫', color: '#1c1917', unlocked: true,  price: 5 },
+            redbean:   { id: 'redbean',   name: '萬丹紅豆', emoji: '🫘', color: '#991b1b', unlocked: true,  price: 5 },
+            mungbean:  { id: 'mungbean',  name: '消暑綠豆', emoji: '🟢', color: '#65a30d', unlocked: true,  price: 5 },
+            taroball:  { id: 'taroball',  name: '九份芋圓', emoji: '🟣', color: '#a855f7', unlocked: false, price: 8 },
+            grassjelly:{ id: 'grassjelly',name: '關西仙草', emoji: '⬛', color: '#0f172a', unlocked: false, price: 7 }
+        };
+
+        const CUSTOMER_TYPES = [
+            { name: '放學高中生', avatar: '🧑‍🎓', patienceMax: 34, tipBonus: 5 },
+            { name: '親切阿嬤',   avatar: '👵', patienceMax: 42, tipBonus: 8 },
+            { name: '加班上班族', avatar: '🧑‍💼', patienceMax: 28, tipBonus: 12 },
+            { name: '觀光情侶',   avatar: '👩‍❤️‍👨', patienceMax: 36, tipBonus: 10 },
+            { name: '夜市老饕',   avatar: '🧔', patienceMax: 30, tipBonus: 15 },
+            { name: '可愛小妹妹', avatar: '👧', patienceMax: 38, tipBonus: 6 }
+        ];
+
+        const UPGRADES_DATA = [
+            {
+                id: 'unlock_taroball',
+                title: '解鎖配料：九份手工芋圓',
+                desc: 'Q彈雙色芋圓，大幅提升每碗豆花售價！',
+                cost: 80,
+                purchased: false,
+                apply: () => { TOPPINGS_DATA.taroball.unlocked = true; }
+            },
+            {
+                id: 'unlock_grassjelly',
+                title: '解鎖配料：關西嫩仙草',
+                desc: '滑嫩退火的古早味仙草，吸引更多夏季客人！',
+                cost: 110,
+                purchased: false,
+                apply: () => { TOPPINGS_DATA.grassjelly.unlocked = true; }
+            },
+            {
+                id: 'upgrade_bucket',
+                title: '加大檜木豆花桶 (+5碗容量)',
+                desc: '減少補豆花次數，尖峰時刻更從容！',
+                cost: 70,
+                purchased: false,
+                apply: () => { gameState.bucketMax += 5; gameState.bucketStock = gameState.bucketMax; }
+            },
+            {
+                id: 'upgrade_sign',
+                title: '手工霓虹招牌 (客單價 +$8)',
+                desc: '亮眼古早味招牌，每碗出餐額外獲得 $8 品牌加給！',
+                cost: 120,
+                purchased: false,
+                apply: () => { gameState.priceBonus += 8; }
+            },
+            {
+                id: 'upgrade_lantern',
+                title: '喜氣紅燈籠陣 (客人耐心 +20%)',
+                desc: '溫馨氛圍讓排隊客人更有耐心等待！',
+                cost: 95,
+                purchased: false,
+                apply: () => { gameState.patienceMultiplier += 0.2; }
+            }
+        ];
+
+        let gameState = {
+            day: 1,
+            money: 100,
+            reputation: 4.5,
+            timeLeft: 90,
+            isPlaying: false,
+            bucketStock: 10,
+            bucketMax: 10,
+            priceBonus: 0,
+            patienceMultiplier: 1.0,
+            combo: 0,
+            dayStats: { served: 0, revenue: 0, cost: 0 },
+            customers: [],
+            selectedCustomerId: null,
+            bowl: { hasDouhua: false, toppings: [], soup: null, hasIce: false }
+        };
+
+        let gameLoopInterval = null;
+        let spawnCooldown = 0;
+
+        /* =========================================================================
+           3. 核心遊戲流程控制
+           ========================================================================= */
+        function startGame() {
+            AudioSys.init();
+            document.getElementById('start-modal').classList.add('hidden');
+            startDay();
+        }
+
+        function startNextDay() {
+            document.getElementById('shop-modal').classList.add('hidden');
+            gameState.day += 1;
+            startDay();
+        }
+
+        function startDay() {
+            gameState.timeLeft = 90;
+            gameState.isPlaying = true;
+            gameState.bucketStock = gameState.bucketMax;
+            gameState.customers = [];
+            gameState.selectedCustomerId = null;
+            gameState.combo = 0;
+            gameState.dayStats = { served: 0, revenue: 0, cost: 0 };
+            resetBowl(false);
+
+            renderToppingsButtons();
+            updateHUD();
+            spawnCustomer();
+            spawnCooldown = 4;
+
+            if (gameLoopInterval) clearInterval(gameLoopInterval);
+            gameLoopInterval = setInterval(gameTick, 1000);
+        }
+
+        function gameTick() {
+            if (!gameState.isPlaying) return;
+
+            gameState.timeLeft -= 1;
+            spawnCooldown -= 1;
+            if (spawnCooldown <= 0 && gameState.customers.length < 3) {
+                spawnCustomer();
+                spawnCooldown = Math.max(5, 9 - Math.floor(gameState.day * 0.5));
+            }
+
+            for (let i = gameState.customers.length - 1; i >= 0; i--) {
+                const c = gameState.customers[i];
+                c.patience -= 1;
+                if (c.patience <= 0) {
+                    AudioSys.error();
+                    showFloatingText(`😤 ${c.name}等太久離開了！(-0.2⭐)`, 'text-rose-400');
+                    gameState.reputation = Math.max(1.0, +(gameState.reputation - 0.2).toFixed(1));
+                    gameState.combo = 0;
+                    gameState.customers.splice(i, 1);
+                    if (gameState.selectedCustomerId === c.id) {
+                        gameState.selectedCustomerId = gameState.customers[0]?.id || null;
+                    }
+                }
+            }
+
+            renderCustomers();
+            updateHUD();
+
+            if (gameState.timeLeft <= 0) {
+                endDay();
+            }
+        }
+
+        function endDay() {
+            gameState.isPlaying = false;
+            clearInterval(gameLoopInterval);
+            AudioSys.coin();
+
+            document.getElementById('shop-day-title').textContent = `第 ${gameState.day} 天 營收結算與攤車升級`;
+            document.getElementById('stat-served').textContent = `${gameState.dayStats.served} 碗`;
+            document.getElementById('stat-revenue').textContent = `+$${gameState.dayStats.revenue}`;
+            document.getElementById('stat-cost').textContent = `-$${gameState.dayStats.cost}`;
+            document.getElementById('stat-total-money').textContent = `$${gameState.money}`;
+
+            renderUpgradesShop();
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+
+        /* =========================================================================
+           4. 客人訂單生成與渲染
+           ========================================================================= */
+        function spawnCustomer() {
+            const template = CUSTOMER_TYPES[Math.floor(Math.random() * CUSTOMER_TYPES.length)];
+            const unlockedToppings = Object.values(TOPPINGS_DATA).filter(t => t.unlocked);
+
+            const toppingCount = Math.min(unlockedToppings.length, Math.floor(Math.random() * 3) + 1);
+            const shuffled = [...unlockedToppings].sort(() => 0.5 - Math.random());
+            const chosenToppings = shuffled.slice(0, toppingCount).map(t => t.id);
+
+            const isCold = Math.random() > 0.35;
+            const soup = isCold
+                ? 'brownsugar'
+                : (Math.random() > 0.35 ? 'ginger' : 'brownsugar');
+
+            const patienceMax = Math.round(template.patienceMax * gameState.patienceMultiplier);
+
+            const customer = {
+                id: 'cust_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                name: template.name,
+                avatar: template.avatar,
+                isCold,
+                soup,
+                toppings: chosenToppings,
+                patience: patienceMax,
+                patienceMax: patienceMax,
+                tipBonus: template.tipBonus
+            };
+
+            gameState.customers.push(customer);
+            if (!gameState.selectedCustomerId) {
+                gameState.selectedCustomerId = customer.id;
+            }
+            renderCustomers();
+        }
+
+        function selectCustomer(id) {
+            gameState.selectedCustomerId = id;
+            renderCustomers();
+        }
+
+        function renderCustomers() {
+            const container = document.getElementById('customers-container');
+            document.getElementById('customer-count').textContent = gameState.customers.length;
+
+            if (gameState.customers.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center py-8 text-amber-200/50">
+                        <span class="text-3xl mb-1">🏮</span>
+                        <span class="text-sm">夜市人潮正在走過來，請稍候...</span>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = gameState.customers.map(c => {
+                const isSelected = c.id === gameState.selectedCustomerId;
+                const pct = Math.max(0, Math.round((c.patience / c.patienceMax) * 100));
+                const barColor = pct > 50 ? 'bg-emerald-500' : (pct > 25 ? 'bg-amber-400' : 'bg-rose-500');
+
+                const toppingBadges = c.toppings.map(tid => {
+                    const t = TOPPINGS_DATA[tid];
+                    return `<span class="inline-flex items-center gap-0.5 bg-amber-950/90 border border-amber-500/40 px-1.5 py-0.5 rounded text-xs text-amber-100">${t.emoji}${t.name.slice(-2)}</span>`;
+                }).join('');
+
+                return `
+                    <div onclick="selectCustomer('${c.id}')"
+                        class="animate-pop-in cursor-pointer rounded-2xl p-3 transition-all border-2 ${
+                            isSelected
+                            ? 'bg-gradient-to-br from-amber-900/90 to-stone-900 border-amber-400 shadow-lg shadow-amber-500/20 scale-[1.01]'
+                            : 'bg-stone-900/80 border-stone-700/80 hover:border-amber-600/60 opacity-90'
+                        }">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl sm:text-3xl bg-amber-100/10 rounded-full p-1">${c.avatar}</span>
+                                <div>
+                                    <div class="font-bold text-xs sm:text-sm text-amber-100 flex items-center gap-1.5">
+                                        ${c.name}
+                                        ${isSelected ? '<span class="bg-amber-400 text-stone-950 text-[10px] font-black px-1.5 rounded">目前服務</span>' : ''}
+                                    </div>
+                                    <div class="text-[11px] font-bold ${c.isCold ? 'text-sky-300' : 'text-orange-400'}">
+                                        ${c.isCold ? '❄️ 冰豆花 (要碎冰)' : '🔥 熱豆花 (不加冰)'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50 text-stone-900 rounded-xl p-2 text-xs shadow-inner mb-2">
+                            <div class="font-black text-amber-950 mb-1 flex items-center justify-between">
+                                <span>湯底：${c.soup === 'brownsugar' ? '🟤 黑糖水' : '🟡 熱老薑汁'}</span>
+                                <span class="text-[10px] text-stone-500">配料 ${c.toppings.length} 樣</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1">
+                                ${toppingBadges}
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-stone-800 h-2 rounded-full overflow-hidden">
+                            <div class="${barColor} h-full transition-all duration-500" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* =========================================================================
+           5. 豆花製作互動邏輯
+           ========================================================================= */
+        function scoopDouhua() {
+            if (!gameState.isPlaying) return;
+            if (gameState.bowl.hasDouhua) {
+                showFloatingText('碗裡已經有豆花囉！', 'text-amber-300');
+                return;
+            }
+            if (gameState.bucketStock <= 0) {
+                AudioSys.error();
+                showFloatingText('木桶沒豆花了！請先點擊「補充新豆花」', 'text-rose-400');
+                return;
+            }
+
+            AudioSys.scoop();
+            gameState.bucketStock -= 1;
+            gameState.bowl.hasDouhua = true;
+            updateBowlVisuals();
+            updateHUD();
+        }
+
+        function refillBucket() {
+            if (!gameState.isPlaying) return;
+            if (gameState.bucketStock === gameState.bucketMax) {
+                showFloatingText('木桶還是滿滿的喔！', 'text-amber-300');
+                return;
+            }
+            const cost = 15;
+            if (gameState.money < cost) {
+                AudioSys.error();
+                showFloatingText('資金不足 $15 無法補貨！', 'text-rose-400');
+                return;
+            }
+            AudioSys.scoop();
+            gameState.money -= cost;
+            gameState.dayStats.cost += cost;
+            gameState.bucketStock = gameState.bucketMax;
+            showFloatingText('🪵 已補滿新鮮手工豆花！(-$15)', 'text-emerald-300');
+            updateHUD();
+        }
+
+        function toggleTopping(toppingId) {
+            if (!gameState.isPlaying) return;
+            if (!gameState.bowl.hasDouhua) {
+                AudioSys.error();
+                showFloatingText('請先點擊木桶「舀豆花」進碗裡！', 'text-amber-300');
+                return;
+            }
+
+            const idx = gameState.bowl.toppings.indexOf(toppingId);
+            if (idx > -1) {
+                gameState.bowl.toppings.splice(idx, 1);
+            } else {
+                if (gameState.bowl.toppings.length >= 4) {
+                    showFloatingText('一碗最多放 4 種配料喔！', 'text-amber-300');
+                    return;
+                }
+                gameState.bowl.toppings.push(toppingId);
+            }
+            AudioSys.topping();
+            updateBowlVisuals();
+        }
+
+        function setSoup(soupType) {
+            if (!gameState.isPlaying) return;
+            if (!gameState.bowl.hasDouhua) {
+                AudioSys.error();
+                showFloatingText('請先舀入豆花再淋湯底！', 'text-amber-300');
+                return;
+            }
+            AudioSys.soup();
+            gameState.bowl.soup = soupType;
+            updateBowlVisuals();
+        }
+
+        function toggleIce() {
+            if (!gameState.isPlaying) return;
+            if (!gameState.bowl.hasDouhua) {
+                AudioSys.error();
+                showFloatingText('請先舀入豆花！', 'text-amber-300');
+                return;
+            }
+            AudioSys.ice();
+            gameState.bowl.hasIce = !gameState.bowl.hasIce;
+            updateBowlVisuals();
+        }
+
+        function trashBowl() {
+            if (!gameState.bowl.hasDouhua) return;
+            AudioSys.trash();
+            resetBowl(true);
+            showFloatingText('🗑️ 已倒掉重做', 'text-stone-300');
+        }
+
+        function resetBowl(updateUI = true) {
+            gameState.bowl = { hasDouhua: false, toppings: [], soup: null, hasIce: false };
+            if (updateUI) updateBowlVisuals();
+        }
+
+        function updateBowlVisuals() {
+            const b = gameState.bowl;
+            document.getElementById('svg-layer-douhua').classList.toggle('hidden', !b.hasDouhua);
+
+            const toppingsLayer = document.getElementById('svg-layer-toppings');
+            toppingsLayer.innerHTML = '';
+            const positions = [
+                { cx: 78, cy: 83 }, { cx: 118, cy: 84 }, { cx: 98, cy: 92 }, { cx: 96, cy: 76 }
+            ];
+            b.toppings.forEach((tid, index) => {
+                const tData = TOPPINGS_DATA[tid];
+                const pos = positions[index % positions.length];
+                for (let k = 0; k < 4; k++) {
+                    const offsetX = (k % 2 === 0 ? -5 : 5) + (k * 1.5);
+                    const offsetY = (k < 2 ? -3 : 3);
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', pos.cx + offsetX);
+                    circle.setAttribute('cy', pos.cy + offsetY);
+                    circle.setAttribute('r', '5.5');
+                    circle.setAttribute('fill', tData.color);
+                    circle.setAttribute('stroke', '#ffffff');
+                    circle.setAttribute('stroke-width', '0.8');
+                    toppingsLayer.appendChild(circle);
+                }
+            });
+
+            const soupLayer = document.getElementById('svg-layer-soup');
+            const soupEllipse = document.getElementById('soup-ellipse');
+            if (b.soup) {
+                soupLayer.classList.remove('hidden');
+                soupEllipse.setAttribute('fill', b.soup === 'brownsugar'
+                    ? 'rgba(120, 53, 15, 0.48)'
+                    : 'rgba(234, 179, 8, 0.42)');
+            } else {
+                soupLayer.classList.add('hidden');
+            }
+
+            document.getElementById('svg-layer-ice').classList.toggle('hidden', !b.hasIce);
+
+            const statusText = document.getElementById('bowl-status-text');
+            if (!b.hasDouhua) {
+                statusText.textContent = '空碗（請先舀豆花）';
+                statusText.className = 'text-xs font-bold text-stone-400';
+            } else if (!b.soup) {
+                statusText.textContent = '製作中（別忘了加湯底）';
+                statusText.className = 'text-xs font-bold text-amber-400';
+            } else {
+                statusText.textContent = '可隨時出餐！';
+                statusText.className = 'text-xs font-bold text-emerald-400';
+            }
+
+            document.getElementById('btn-soup-brownsugar').classList.toggle('ring-2', b.soup === 'brownsugar');
+            document.getElementById('btn-soup-brownsugar').classList.toggle('ring-amber-300', b.soup === 'brownsugar');
+            document.getElementById('btn-soup-ginger').classList.toggle('ring-2', b.soup === 'ginger');
+            document.getElementById('btn-soup-ginger').classList.toggle('ring-yellow-300', b.soup === 'ginger');
+
+            const iceBtn = document.getElementById('btn-toggle-ice');
+            const iceLabel = document.getElementById('ice-btn-label');
+            if (b.hasIce) {
+                iceBtn.classList.add('ring-2', 'ring-sky-300', 'bg-sky-800');
+                iceLabel.textContent = '已加入清涼碎冰 ❄️ (點擊取消)';
+            } else {
+                iceBtn.classList.remove('ring-2', 'ring-sky-300', 'bg-sky-800');
+                iceLabel.textContent = '加入清涼碎冰 (目前：未加冰)';
+            }
+
+            Object.keys(TOPPINGS_DATA).forEach(tid => {
+                const btn = document.getElementById(`topping-btn-${tid}`);
+                if (btn) {
+                    const active = b.toppings.includes(tid);
+                    btn.classList.toggle('ring-2', active);
+                    btn.classList.toggle('ring-amber-300', active);
+                    btn.classList.toggle('bg-amber-700', active);
+                }
+            });
+
+            const tagsDiv = document.getElementById('current-bowl-tags');
+            if (!b.hasDouhua) {
+                tagsDiv.innerHTML = '<span class="text-xs text-stone-400">尚未加入任何材料</span>';
+            } else {
+                let tags = ['<span class="bg-amber-100 text-stone-900 font-bold text-[11px] px-2 py-0.5 rounded-full">手工豆花</span>'];
+                b.toppings.forEach(tid => {
+                    const t = TOPPINGS_DATA[tid];
+                    tags.push(`<span class="bg-amber-800 text-amber-100 text-[11px] px-2 py-0.5 rounded-full">${t.emoji}${t.name.slice(-2)}</span>`);
+                });
+                if (b.soup) {
+                    tags.push(`<span class="bg-yellow-700 text-white text-[11px] px-2 py-0.5 rounded-full">${b.soup === 'brownsugar' ? '黑糖水' : '老薑汁'}</span>`);
+                }
+                if (b.hasIce) {
+                    tags.push('<span class="bg-sky-600 text-white text-[11px] px-2 py-0.5 rounded-full">🧊碎冰</span>');
+                }
+                tagsDiv.innerHTML = tags.join('');
+            }
+        }
+
+        /* =========================================================================
+           6. 出餐評分與結算邏輯
+           ========================================================================= */
+        function serveBowl() {
+            if (!gameState.isPlaying) return;
+            const b = gameState.bowl;
+
+            if (!b.hasDouhua) {
+                AudioSys.error();
+                showFloatingText('碗裡連豆花都沒有喔！', 'text-rose-400');
+                return;
+            }
+            if (!b.soup) {
+                AudioSys.error();
+                showFloatingText('還沒淋湯底（黑糖水或薑汁）喔！', 'text-amber-300');
+                return;
+            }
+            if (gameState.customers.length === 0) {
+                showFloatingText('目前沒有客人在排隊喔！', 'text-stone-300');
+                return;
+            }
+
+            const targetIdx = gameState.customers.findIndex(c => c.id === gameState.selectedCustomerId);
+            const customer = targetIdx > -1 ? gameState.customers[targetIdx] : gameState.customers[0];
+
+            const soupMatch = (b.soup === customer.soup);
+            const iceMatch = (b.hasIce === customer.isCold);
+
+            const sortedBowlToppings = [...b.toppings].sort();
+            const sortedOrderToppings = [...customer.toppings].sort();
+            const toppingsExactMatch =
+                sortedBowlToppings.length === sortedOrderToppings.length &&
+                sortedBowlToppings.every((val, idx) => val === sortedOrderToppings[idx]);
+
+            const ingredientCost = 5 + (b.toppings.length * 3);
+            let basePrice = 40 + customer.toppings.reduce((sum, tid) => sum + TOPPINGS_DATA[tid].price, 0) + gameState.priceBonus;
+
+            if (soupMatch && iceMatch && toppingsExactMatch) {
+                AudioSys.coin();
+                gameState.combo += 1;
+                const comboBonus = gameState.combo >= 2 ? (gameState.combo * 3) : 0;
+                const totalEarned = basePrice + customer.tipBonus + comboBonus;
+
+                gameState.money += totalEarned;
+                gameState.dayStats.served += 1;
+                gameState.dayStats.revenue += totalEarned;
+                gameState.dayStats.cost += ingredientCost;
+                gameState.reputation = Math.min(5.0, +(gameState.reputation + 0.1).toFixed(1));
+
+                showFloatingText(`🌟 完美出餐！+$${totalEarned} 元 (+0.1⭐)`, 'text-emerald-300');
+            } else if (soupMatch && (iceMatch || toppingsExactMatch)) {
+                AudioSys.coin();
+                gameState.combo = 0;
+                const reducedEarned = Math.round(basePrice * 0.6);
+                gameState.money += reducedEarned;
+                gameState.dayStats.served += 1;
+                gameState.dayStats.revenue += reducedEarned;
+                gameState.dayStats.cost += ingredientCost;
+
+                let reason = !iceMatch ? '冷熱/碎冰搞錯了' : '配料不太對';
+                showFloatingText(`😅 ${reason}，客人勉強接受 +$${reducedEarned}`, 'text-amber-300');
+            } else {
+                AudioSys.error();
+                gameState.combo = 0;
+                gameState.dayStats.cost += ingredientCost;
+                gameState.reputation = Math.max(1.0, +(gameState.reputation - 0.3).toFixed(1));
+                showFloatingText(`💥 完全做錯口味！客人拒付 (-0.3⭐)`, 'text-rose-400');
+            }
+
+            const removeIdx = gameState.customers.findIndex(c => c.id === customer.id);
+            if (removeIdx > -1) gameState.customers.splice(removeIdx, 1);
+            gameState.selectedCustomerId = gameState.customers[0]?.id || null;
+
+            resetBowl(true);
+            renderCustomers();
+            updateHUD();
+        }
+
+        /* =========================================================================
+           7. UI 渲染與一鍵複製完整網頁程式碼 (上架 GitHub 用)
+           ========================================================================= */
+        function copyFullHtmlCode() {
+            const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const textarea = document.createElement('textarea');
+            textarea.value = fullHtml;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                AudioSys.coin();
+                showFloatingText('✅ 已複製完整網頁碼！快去 GitHub 貼上吧！', 'text-sky-300');
+            } catch (err) {
+                showFloatingText('複製失敗，請切換至程式碼分頁手動全選複製', 'text-rose-400');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function renderToppingsButtons() {
+            const grid = document.getElementById('toppings-grid');
+            grid.innerHTML = Object.values(TOPPINGS_DATA).map(t => {
+                if (!t.unlocked) {
+                    return `
+                        <button disabled class="bg-stone-900/60 border border-stone-700/60 rounded-xl p-2 flex flex-col items-center justify-center opacity-50 cursor-not-allowed">
+                            <span class="text-base">🔒</span>
+                            <span class="text-[11px] text-stone-400">${t.name.slice(-2)} (商店解鎖)</span>
+                        </button>
+                    `;
+                }
+                return `
+                    <button id="topping-btn-${t.id}" onclick="toggleTopping('${t.id}')"
+                        class="btn-tactile bg-amber-900/80 hover:bg-amber-800 border border-amber-500/50 rounded-xl p-2 flex flex-col items-center justify-center text-amber-100">
+                        <span class="text-lg sm:text-xl leading-none mb-0.5">${t.emoji}</span>
+                        <span class="text-xs font-bold">${t.name.slice(-2)}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderUpgradesShop() {
+            const container = document.getElementById('upgrades-container');
+            container.innerHTML = UPGRADES_DATA.map(u => {
+                const canAfford = gameState.money >= u.cost;
+                return `
+                    <div class="bg-stone-900/90 border ${u.purchased ? 'border-emerald-600/50' : 'border-amber-600/40'} rounded-2xl p-3 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-sm text-amber-200 mb-1">${u.title}</div>
+                            <p class="text-xs text-stone-300 mb-3">${u.desc}</p>
+                        </div>
+                        ${u.purchased
+                            ? `<button disabled class="w-full bg-emerald-950 text-emerald-400 font-bold py-1.5 rounded-xl text-xs border border-emerald-700/50">✅ 已升級完成</button>`
+                            : `<button onclick="buyUpgrade('${u.id}')" ${!canAfford ? 'disabled' : ''}
+                                class="btn-tactile w-full ${canAfford ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 font-black' : 'bg-stone-800 text-stone-500 cursor-not-allowed'} py-1.5 rounded-xl text-xs">
+                                💰 花費 $${u.cost} 購買升級
+                               </button>`
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buyUpgrade(upgradeId) {
+            const item = UPGRADES_DATA.find(u => u.id === upgradeId);
+            if (!item || item.purchased || gameState.money < item.cost) return;
+
+            AudioSys.coin();
+            gameState.money -= item.cost;
+            item.purchased = true;
+            item.apply();
+
+            document.getElementById('stat-total-money').textContent = `$${gameState.money}`;
+            updateHUD();
+            renderUpgradesShop();
+        }
+
+        function updateHUD() {
+            document.getElementById('day-badge').textContent = `第 ${gameState.day} 天`;
+            document.getElementById('money-display').textContent = gameState.money;
+            document.getElementById('reputation-display').textContent = gameState.reputation.toFixed(1);
+            document.getElementById('timer-display').textContent = `${gameState.timeLeft}s`;
+            document.getElementById('bucket-stock').textContent = gameState.bucketStock;
+            document.getElementById('bucket-max').textContent = gameState.bucketMax;
+
+            const comboBadge = document.getElementById('combo-badge');
+            if (gameState.combo >= 2) {
+                comboBadge.classList.remove('hidden');
+                comboBadge.textContent = `🔥 連續完美 x${gameState.combo}!`;
+            } else {
+                comboBadge.classList.add('hidden');
+            }
+        }
+
+        function showFloatingText(msg, colorClass = 'text-amber-300') {
+            const layer = document.getElementById('feedback-layer');
+            const el = document.createElement('div');
+            el.className = `floating-feedback bg-stone-950/90 border border-amber-500/60 px-4 py-2 rounded-2xl font-black text-sm sm:text-base shadow-2xl ${colorClass}`;
+            el.textContent = msg;
+            layer.appendChild(el);
+            setTimeout(() => el.remove(), 1150);
+        }
+
+        /* =========================================================================
+           8. Python Pygame 單機版程式碼展示與一鍵複製
+           ========================================================================= */
+        const PYTHON_SOURCE_CODE = `# -*- coding: utf-8 -*-
+"""
+古早味手工豆花攤 (Taiwan Traditional Douhua Stand) - Python Pygame 單機版
+執行方式：
+1. 安裝套件：pip install pygame
+2. 執行程式：python douhua_game.py
+"""
+import pygame
+import random
+import sys
+
+pygame.init()
+WIDTH, HEIGHT = 960, 640
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("🏮 古早味手工豆花攤 - 台灣夜市模擬經營 (Python 版)")
+clock = pygame.time.Clock()
+
+def get_font(size, bold=False):
+    font_candidates = ["Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", "SimHei", "Arial"]
+    for name in font_candidates:
+        path = pygame.font.match_font(name, bold=bold)
+        if path:
+            return pygame.font.Font(path, size)
+    return pygame.font.SysFont(None, size, bold=bold)
+
+FONT_LG = get_font(30, bold=True)
+FONT_MD = get_font(20, bold=True)
+FONT_SM = get_font(16)
+
+BG_NIGHT = (28, 18, 12)
+WOOD_DARK = (92, 52, 25)
+WOOD_LIGHT = (139, 83, 41)
+GOLD = (251, 191, 36)
+CREAM = (254, 243, 199)
+WHITE = (255, 255, 255)
+RED_LANTERN = (220, 38, 38)
+GREEN_OK = (16, 185, 129)
+
+TOPPINGS = [
+    {"id": "peanut", "name": "花生", "color": (234, 179, 8)},
+    {"id": "boba", "name": "粉圓", "color": (30, 30, 30)},
+    {"id": "redbean", "name": "紅豆", "color": (153, 27, 27)},
+    {"id": "mungbean", "name": "綠豆", "color": (101, 163, 13)},
+    {"id": "taroball", "name": "芋圓", "color": (168, 85, 247)},
+]
+
+class Customer:
+    def __init__(self):
+        self.name = random.choice(["放學學生", "親切阿嬤", "加班上班族", "夜市老饕", "觀光情侶"])
+        self.is_cold = random.choice([True, False])
+        self.soup = "brownsugar" if self.is_cold else random.choice(["ginger", "brownsugar"])
+        self.toppings = random.sample([t["id"] for t in TOPPINGS], random.randint(1, 3))
+        self.max_patience = 35.0
+        self.patience = self.max_patience
+
+class DouhuaGame:
+    def __init__(self):
+        self.money = 100
+        self.score = 0
+        self.time_left = 90.0
+        self.customers = [Customer()]
+        self.spawn_timer = 5.0
+        self.message = "歡迎光臨！點擊「舀豆花」開始製作吧！"
+        self.reset_bowl()
+
+    def reset_bowl(self):
+        self.bowl = {"douhua": False, "toppings": [], "soup": None, "ice": False}
+
+    def spawn_customer(self):
+        if len(self.customers) < 3:
+            self.customers.append(Customer())
+
+    def serve(self):
+        if not self.customers:
+            self.message = "目前沒有客人在排隊喔！"
+            return
+        if not self.bowl["douhua"] or not self.bowl["soup"]:
+            self.message = "還沒舀豆花或還沒淋湯底喔！"
+            return
+
+        cust = self.customers[0]
+        match_soup = self.bowl["soup"] == cust.soup
+        match_ice = self.bowl["ice"] == cust.is_cold
+        match_toppings = sorted(self.bowl["toppings"]) == sorted(cust.toppings)
+
+        if match_soup and match_ice and match_toppings:
+            earned = 55 + len(cust.toppings) * 8
+            self.money += earned
+            self.score += 1
+            self.message = f"🌟 完美出餐給{cust.name}！賺得 +$\{earned} 元！"
+        else:
+            self.money = max(0, self.money - 10)
+            self.message = f"💥 口味做錯了！{cust.name}不滿意 (-$10)"
+
+        self.customers.pop(0)
+        self.reset_bowl()
+        if not self.customers:
+            self.spawn_customer()
+
+def main():
+    game = DouhuaGame()
+    buttons = []
+
+    def add_btn(rect, label, color, action):
+        buttons.append((pygame.Rect(rect), label, color, action))
+
+    add_btn((40, 410, 160, 65), "① 舀豆花", (217, 119, 6), lambda: game.bowl.update({"douhua": True}))
+    for idx, t in enumerate(TOPPINGS):
+        x = 460 + (idx % 3) * 155
+        y = 370 + (idx // 3) * 58
+        def make_toggle(tid=t["id"]):
+            def _toggle():
+                if not game.bowl["douhua"]:
+                    game.message = "請先舀豆花！"
+                    return
+                if tid in game.bowl["toppings"]:
+                    game.bowl["toppings"].remove(tid)
+                else:
+                    game.bowl["toppings"].append(tid)
+            return _toggle
+        add_btn((x, y, 145, 48), f"+ {t['name']}", (120, 53, 15), make_toggle())
+
+    add_btn((460, 495, 145, 48), "黑糖水", (92, 40, 12), lambda: game.bowl.update({"soup": "brownsugar"}) if game.bowl["douhua"] else None)
+    add_btn((615, 495, 145, 48), "熱老薑汁", (161, 98, 7), lambda: game.bowl.update({"soup": "ginger"}) if game.bowl["douhua"] else None)
+    add_btn((770, 495, 145, 48), "🧊 切換碎冰", (2, 132, 199), lambda: game.bowl.update({"ice": not game.bowl["ice"]}) if game.bowl["douhua"] else None)
+
+    add_btn((230, 555, 110, 50), "倒掉重做", (190, 18, 60), game.reset_bowl)
+    add_btn((350, 555, 160, 50), "🛎️ 出餐！", GREEN_OK, game.serve)
+
+    running = True
+    while running:
+        dt = clock.tick(60) / 1000.0
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                for rect, _, _, action in buttons:
+                    if rect.collidepoint(event.pos):
+                        action()
+
+        if game.time_left > 0:
+            game.time_left -= dt
+            game.spawn_timer -= dt
+            if game.spawn_timer <= 0:
+                game.spawn_customer()
+                game.spawn_timer = 7.0
+            for c in game.customers[:]:
+                c.patience -= dt
+                if c.patience <= 0:
+                    game.customers.remove(c)
+                    game.message = f"😤 {c.name}等太久離開了！"
+
+        screen.fill(BG_NIGHT)
+        pygame.draw.rect(screen, WOOD_DARK, (0, 0, WIDTH, 68))
+        title_surf = FONT_LG.render("🏮 古早味手工豆花攤 (Python Pygame 版)", True, GOLD)
+        stat_surf = FONT_MD.render(f"資金: $\${game.money}   售出: {game.score}碗   剩餘時間: {max(0, int(game.time_left))}s", True, CREAM)
+        screen.blit(title_surf, (25, 16))
+        screen.blit(stat_surf, (560, 22))
+
+        topping_map = {t["id"]: t["name"] for t in TOPPINGS}
+        for i, c in enumerate(game.customers):
+            card = pygame.Rect(30 + i * 305, 88, 290, 175)
+            pygame.draw.rect(screen, (55, 35, 25), card, border_radius=12)
+            pygame.draw.rect(screen, GOLD if i == 0 else (120, 80, 50), card, 2, border_radius=12)
+            temp_str = "❄️ 冰豆花 (要碎冰)" if c.is_cold else "🔥 熱豆花 (不加冰)"
+            soup_str = "黑糖水" if c.soup == "brownsugar" else "老薑汁"
+            tops_str = "、".join([topping_map[tid] for tid in c.toppings])
+            screen.blit(FONT_MD.render(f"{c.name} {'[服務中]' if i==0 else ''}", True, WHITE), (card.x + 12, card.y + 10))
+            screen.blit(FONT_SM.render(temp_str, True, (125, 211, 252) if c.is_cold else (251, 146, 60)), (card.x + 12, card.y + 42))
+            screen.blit(FONT_SM.render(f"湯底：{soup_str}", True, CREAM), (card.x + 12, card.y + 68))
+            screen.blit(FONT_SM.render(f"配料：{tops_str}", True, GOLD), (card.x + 12, card.y + 94))
+            pct = max(0, c.patience / c.max_patience)
+            pygame.draw.rect(screen, (30, 30, 30), (card.x + 12, card.y + 135, 266, 14), border_radius=6)
+            pygame.draw.rect(screen, GREEN_OK if pct > 0.4 else RED_LANTERN, (card.x + 12, card.y + 135, int(266 * pct), 14), border_radius=6)
+
+        pygame.draw.rect(screen, WOOD_LIGHT, (0, 330, WIDTH, HEIGHT - 330))
+        screen.blit(FONT_MD.render(game.message, True, GOLD), (30, 290))
+
+        pygame.draw.circle(screen, WHITE, (330, 455), 75)
+        pygame.draw.circle(screen, (30, 58, 138), (330, 455), 75, 4)
+        if game.bowl["douhua"]:
+            pygame.draw.circle(screen, (255, 251, 235), (330, 455), 62)
+        if game.bowl["soup"]:
+            soup_col = (120, 53, 15) if game.bowl["soup"] == "brownsugar" else (234, 179, 8)
+            pygame.draw.circle(screen, soup_col, (330, 455), 65, 6)
+        for idx, tid in enumerate(game.bowl["toppings"]):
+            col = next(t["color"] for t in TOPPINGS if t["id"] == tid)
+            pygame.draw.circle(screen, col, (305 + (idx % 3) * 24, 440 + (idx // 3) * 24), 9)
+        if game.bowl["ice"]:
+            screen.blit(FONT_SM.render("🧊已加碎冰", True, (2, 132, 199)), (290, 485))
+
+        for rect, label, color, _ in buttons:
+            pygame.draw.rect(screen, color, rect, border_radius=10)
+            pygame.draw.rect(screen, CREAM, rect, 2, border_radius=10)
+            txt = FONT_SM.render(label, True, WHITE)
+            screen.blit(txt, (rect.centerx - txt.get_width() // 2, rect.centery - txt.get_height() // 2))
+
+        pygame.display.flip()
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
+`;
+
+        function openPythonModal() {
+            document.getElementById('python-code-block').textContent = PYTHON_SOURCE_CODE;
+            document.getElementById('python-modal').classList.remove('hidden');
+        }
+
+        function closePythonModal() {
+            document.getElementById('python-modal').classList.add('hidden');
+        }
+
+        function copyPythonCode() {
+            const textarea = document.createElement('textarea');
+            textarea.value = PYTHON_SOURCE_CODE;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const btn = document.getElementById('copy-py-btn');
+                btn.innerHTML = '<span>✅</span> 已複製！';
+                setTimeout(() => {
+                    btn.innerHTML = '<span>📋</span> 複製程式碼';
+                }, 2000);
+            } catch (err) {
+                showFloatingText('複製失敗，請手動選取複製', 'text-rose-400');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        window.onload = () => {
+            renderToppingsButtons();
+            updateBowlVisuals();
+            updateHUD();
+        };
+    </script>
+
+</body></html>
